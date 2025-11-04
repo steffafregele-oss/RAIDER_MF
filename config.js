@@ -1,6 +1,4 @@
-const config = {
-    apiKey: process.env.API_KEY,
-    dbConnectionString: process.env.DB_CONNECTION_STRING,
-};
-
-module.exports = config;
+{
+    "TOKEN": "",
+    "whitelist": [1386627461197987841]
+}
