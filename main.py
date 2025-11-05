@@ -12,6 +12,8 @@ import os
 import json
 import logging
 from typing import Any
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # --- Configuration ---
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -50,6 +52,19 @@ leaderboard = load_json(FILE_PATHS["leaderboard"])
 intents = discord.Intents.default()
 intents.message_content = True  # Privileged intent
 bot = commands.Bot(command_prefix='/', intents=intents)
+
+# --- Mini HTTP server pentru Render Web Service ---
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot Discord este online!")
+
+def run_server():
+    server = HTTPServer(("0.0.0.0", 10000), SimpleHandler)  # port fix pentru Render
+    server.serve_forever()
+
+threading.Thread(target=run_server, daemon=True).start()
 
 # --- Commands ---
 
