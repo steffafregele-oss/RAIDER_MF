@@ -1,5 +1,3 @@
-# Discord Raid Bot in Python
-
 import discord
 from discord.ext import commands
 import os
@@ -10,6 +8,7 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # --- Configuration ---
+APP_ID = 1435417146783174810  # Your application ID
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_WHITELIST = [1386627461197987841]  # Your user ID for premium access
 
@@ -52,7 +51,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot Discord is online!")
+        self.wfile.write(b"Authorized App is online!")
 
 def run_server():
     server = HTTPServer(("0.0.0.0", 10000), SimpleHandler)  # fixed port for Render
