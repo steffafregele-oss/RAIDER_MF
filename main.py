@@ -1,3 +1,10 @@
+# Discord Application Development
+
+## Requirement Summary
+The goal is to create a Discord application that functions as an external app rather than a traditional bot. This application should allow users to send commands and messages across different servers, even if the app is not present in those servers. The application should be deployable on Render and should include functionality for premium users.
+
+## Code Generated
+```python
 import discord
 from discord.ext import commands
 import os
