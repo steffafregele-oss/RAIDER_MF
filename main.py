@@ -1356,24 +1356,39 @@ async def on_ready():
         print(f"{Fore.MAGENTA}>{Fore.WHITE} Synced {Fore.MAGENTA}{len(synced)} {Fore.WHITE}commands{Fore.MAGENTA}.{Fore.WHITE}")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
+import os
+import discord
+from discord.ext import commands
+from colorama import Fore
+
+# codul tău de setup bot
+# ...
+
+@bot.event
+async def on_ready():
+    print(logo)
+    print(f"{Fore.MAGENTA}>{Fore.WHITE} Logged in as {Fore.MAGENTA}{bot.user}{Fore.WHITE}.")
+    try:
+        synced = await bot.tree.sync()
+        print(f"{Fore.MAGENTA}>{Fore.WHITE} Synced {Fore.MAGENTA}{len(synced)} {Fore.WHITE}commands{Fore.MAGENTA}.{Fore.WHITE}")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
 
 
 if __name__ == "__main__":
-    TOKEN = token_management()
-    if TOKEN:
-        try:
-            bot.run(TOKEN)
-        except discord.errors.LoginFailure:
-            print(Fore.RED + "Can't connect to token. Please check your token.")
-            input(Fore.YELLOW + "Press Enter to go back to the menu...")
-            TOKEN = token_management()  
-            if TOKEN:
-                bot.run(TOKEN)  
-        except Exception as e:
-            print(Fore.RED + f"An unexpected error occurred: {e}")
-            input(Fore.YELLOW + "Press Enter to restart the menu...")
-            TOKEN = token_management() 
-            if TOKEN:
-                bot.run(TOKEN)  
-    else:
-        print(Fore.RED + "❌ Error: Unable to load or set a token.") 
+    # preluăm tokenul din Environment Variable
+    TOKEN = os.getenv("TOKEN")
+
+    if not TOKEN:
+        raise RuntimeError(
+            "Environment variable TOKEN not set. "
+            "Pe Render, mergi la Service → Environment → Add Environment Variable → KEY=TOKEN, VALUE=tokenul tău."
+        )
+
+    try:
+        bot.run(TOKEN)
+    except discord.errors.LoginFailure:
+        print(Fore.RED + "Can't connect to token. Please check your token.")
+    except Exception as e:
+        print(Fore.RED + f"An unexpected error occurred: {e}")
+
