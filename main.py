@@ -1,19 +1,17 @@
-# Discord Raid Bot in Python
+"""
+Discord Raid Bot in Python
 
-## Requirement Summary
-This document outlines the implementation of a Discord bot that allows users to initiate raid commands. The bot includes commands for both regular and premium users, with specific functionalities for each. The bot is designed to be deployed securely using environment variables for sensitive information.
+This bot allows users to initiate raid commands. It supports both regular and premium users,
+with specific functionalities for each. The bot is designed to be deployed securely using
+environment variables for sensitive information.
+"""
 
-## Code Generated
-
-### 1. `main.py`
-```python
 import discord
 from discord.ext import commands
 import os
 import json
-import asyncio
-from typing import List, Dict, Any, Optional
 import logging
+from typing import Any
 
 # --- Configuration ---
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -54,14 +52,30 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 # --- Commands ---
+
 @bot.tree.command(name="a-raid", description="Initiate a raid.")
 async def a_raid(interaction: discord.Interaction):
+    raid_message = """_ _
+> **- 🦴 3 OP GENERATORS,
+> - 🌐 HAVE OWN SITE,
+> - 🧠 OP METHODS,
+> - 👀 !STATS BOT
+> - 🫆 MANAGE UR OWN SITE/DASHBOARD,
+> - 🗒️ USERNAME & PASSWORD,
+> - 🔒 ACCOUNT STATUS,
+> - 🚀 FAST LOGIN SPEED
+> - 📷 FULL TUTORIALS ON HOW TO BEAM**
+━━━━━━━━━━━━┓
+ https://discord.gg/JgckfuuJg
+━━━━━━━━━━━━┛
+@everyone
+"""
     embed = discord.Embed(title="Raid Alert!", description="Click the button to send the message 5 times.")
     button = discord.ui.Button(label="Send Message", style=discord.ButtonStyle.primary)
 
     async def button_callback(interaction: discord.Interaction):
         for _ in range(5):
-            await interaction.channel.send("🚨 Raid Alert! 🚨")
+            await interaction.channel.send(raid_message)
         await interaction.response.send_message("Message sent 5 times!", ephemeral=True)
 
     button.callback = button_callback
@@ -72,7 +86,9 @@ async def a_raid(interaction: discord.Interaction):
 @bot.tree.command(name="custom-raid", description="Custom raid message for premium users.")
 async def custom_raid(interaction: discord.Interaction, message: str):
     if interaction.user.id not in ADMIN_WHITELIST:
-        await interaction.response.send_message("You don’t have premium access and you cannot use this command😧", ephemeral=True)
+        await interaction.response.send_message(
+            "You don’t have premium access and you cannot use this command😧", ephemeral=True
+        )
         return
 
     embed = discord.Embed(title="Custom Raid Alert!", description=message)
