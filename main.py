@@ -9,16 +9,18 @@ from discord.ext import commands
 from discord.ui import View, Button
 import json
 from colorama import Fore, Style, init
-# ============================
-# HTTP server dummy pentru Render
-# ============================
 from aiohttp import web
 
+init(autoreset=True)
+
+# -------------------------------
+# HTTP server dummy pentru Render
+# -------------------------------
 async def handle(request):
     return web.Response(text="Bot is running ✅")
 
 async def start_http_server():
-    port = int(os.environ.get("PORT", 5000))  # Render setează automat PORT
+    port = int(os.environ.get("PORT", 5000))
     app = web.Application()
     app.add_routes([web.get('/', handle)])
     runner = web.AppRunner(app)
@@ -26,12 +28,6 @@ async def start_http_server():
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     print(f"✅ HTTP server running on port {port}")
-
-# Pornim serverul în background
-loop = asyncio.get_event_loop()
-loop.create_task(start_http_server())
-
-init(autoreset=True)
 
 # Configuration
 PREMIUM_FILE = "premium.json"
@@ -283,19 +279,24 @@ async def on_ready():
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 
-if __name__ == "__main__":
-    # Get token from environment variable
+# -------------------------------
+# Pornire simultană bot + HTTP server
+# -------------------------------
+async def main():
+    # pornește HTTP server
+    await start_http_server()
+    # pornește botul
     TOKEN = os.getenv("TOKEN")
-
     if not TOKEN:
-        raise RuntimeError(
-            "Environment variable TOKEN not set. "
-            "Please set the TOKEN environment variable with your Discord bot token."
-        )
-
+        raise RuntimeError("Environment variable TOKEN not set.")
+    
     try:
-        bot.run(TOKEN)
+        await bot.start(TOKEN)
     except discord.errors.LoginFailure:
         print(Fore.RED + "Can't connect to token. Please check your token.")
     except Exception as e:
         print(Fore.RED + f"An unexpected error occurred: {e}")
+
+# rulează totul în asyncio
+if __name__ == "__main__":
+    asyncio.run(main())
