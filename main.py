@@ -9,6 +9,27 @@ from discord.ext import commands
 from discord.ui import View, Button
 import json
 from colorama import Fore, Style, init
+# ============================
+# HTTP server dummy pentru Render
+# ============================
+from aiohttp import web
+
+async def handle(request):
+    return web.Response(text="Bot is running ✅")
+
+async def start_http_server():
+    port = int(os.environ.get("PORT", 5000))  # Render setează automat PORT
+    app = web.Application()
+    app.add_routes([web.get('/', handle)])
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"✅ HTTP server running on port {port}")
+
+# Pornim serverul în background
+loop = asyncio.get_event_loop()
+loop.create_task(start_http_server())
 
 init(autoreset=True)
 
