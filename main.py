@@ -147,6 +147,6 @@ async def remove_premium(interaction: discord.Interaction, user_id: int):
 
 # --- Run Bot ---
 if __name__ == "__main__":
-    if not BOT_TOKEN:
+    if not USER_TOKEN:
         raise RuntimeError("BOT_TOKEN environment variable not set!")
     bot.run(BOT_TOKEN)
