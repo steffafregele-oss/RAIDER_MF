@@ -1,10 +1,3 @@
-# Discord Application Development
-
-## Requirement Summary
-The goal is to create a Discord application that functions as an external app rather than a traditional bot. This application should allow users to send commands and messages across different servers, even if the app is not present in those servers. The application should be deployable on Render and should include functionality for premium users.
-
-## Code Generated
-```python
 import discord
 from discord.ext import commands
 import os
@@ -16,7 +9,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # --- Configuration ---
 APP_ID = 1435417146783174810  # Your application ID
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")  # Make sure to set this in Render environment
 ADMIN_WHITELIST = [1386627461197987841]  # Your user ID for premium access
 
 # --- Setup Logging ---
@@ -67,7 +60,6 @@ def run_server():
 threading.Thread(target=run_server, daemon=True).start()
 
 # --- Commands ---
-
 @bot.tree.command(name="a-raid", description="Initiate a raid.")
 async def a_raid(interaction: discord.Interaction):
     raid_message = """_ _
@@ -102,7 +94,7 @@ async def a_raid(interaction: discord.Interaction):
 async def custom_raid(interaction: discord.Interaction, message: str):
     if interaction.user.id not in ADMIN_WHITELIST:
         await interaction.response.send_message(
-            "You don’t have premium access and you cannot use this command😧", ephemeral=True
+            "You don’t have premium access and you cannot use this command 😧", ephemeral=True
         )
         return
 
@@ -147,6 +139,6 @@ async def remove_premium(interaction: discord.Interaction, user_id: int):
 
 # --- Run Bot ---
 if __name__ == "__main__":
-    if not USER_TOKEN:
+    if not BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN environment variable not set!")
     bot.run(BOT_TOKEN)
