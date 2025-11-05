@@ -48,7 +48,7 @@ leaderboard = load_json(FILE_PATHS["leaderboard"])
 
 # --- Bot Initialization ---
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # Privileged intent
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 # --- Commands ---
@@ -110,9 +110,12 @@ async def add_premium(interaction: discord.Interaction, user_id: int):
         await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
         return
 
-    premium_users.append(user_id)
-    save_json(FILE_PATHS["premium"], premium_users)
-    await interaction.response.send_message(f"User {user_id} has been granted premium access.")
+    if user_id not in premium_users:
+        premium_users.append(user_id)
+        save_json(FILE_PATHS["premium"], premium_users)
+        await interaction.response.send_message(f"User {user_id} has been granted premium access.")
+    else:
+        await interaction.response.send_message(f"User {user_id} already has premium access.", ephemeral=True)
 
 @bot.tree.command(name="remove-premium", description="Remove premium access from a user.")
 async def remove_premium(interaction: discord.Interaction, user_id: int):
@@ -125,8 +128,10 @@ async def remove_premium(interaction: discord.Interaction, user_id: int):
         save_json(FILE_PATHS["premium"], premium_users)
         await interaction.response.send_message(f"User {user_id} has been removed from premium access.")
     else:
-        await interaction.response.send_message(f"User {user_id} does not have premium access.")
+        await interaction.response.send_message(f"User {user_id} does not have premium access.", ephemeral=True)
 
 # --- Run Bot ---
 if __name__ == "__main__":
+    if not BOT_TOKEN:
+        raise RuntimeError("BOT_TOKEN environment variable not set!")
     bot.run(BOT_TOKEN)
