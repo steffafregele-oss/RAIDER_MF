@@ -240,7 +240,7 @@ async def edit_raid(interaction: discord.Interaction, message: str):
     raid_messages["custom"] = message
     await interaction.response.send_message("✅ Raid message updated successfully!", ephemeral=True)
 
-@bot.tree.command(name="custom-message", description="Send one custom message (premium only)")
+@bot.tree.command(name="custom-message", description="[💎]Send one custom message (premium only)")
 @app_commands.describe(message="The message to send")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def custom_message(interaction: discord.Interaction, message: str):
