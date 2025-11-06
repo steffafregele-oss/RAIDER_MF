@@ -1,4 +1,3 @@
-
 import os
 import time
 import asyncio
@@ -18,7 +17,7 @@ init(autoreset=True)
 # HTTP server dummy pentru Render
 # -------------------------------
 async def handle(request):
-    return web.Response(text="Bot is running \u2705")
+    return web.Response(text="Bot is running ✅")
 
 async def start_http_server():
     port = int(os.environ.get("PORT", 5000))
@@ -28,7 +27,7 @@ async def start_http_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    print(f"\u2705 HTTP server running on port {port}")
+    print(f"✅ HTTP server running on port {port}")
 
 # Configuration
 PREMIUM_FILE = "premium.json"
@@ -63,13 +62,22 @@ def remove_premium_user(user_id: int) -> bool:
         return True
     return False
 
+# Command logging functions
+async def log_command_use(user, command_name, channel=None, message=None):
+    """Log command usage"""
+    print(f"{Fore.CYAN}[COMMAND]{Fore.WHITE} {user} used /{command_name}")
+
+def update_leaderboard(user_id, command_name):
+    """Update leaderboard (placeholder for future implementation)"""
+    pass
+
 # Logo
 logo = f"""{Fore.MAGENTA}
 
   ___ _  _ ___  ___  __  __ _  _ ___   _   
- |_ _| \| / __|/ _ \\|  \\/  | \| |_ _| /_\\  
-  | || .` \\__ \\ (_) | |\\/| | .` || | / _ \\ 
- |___|_|\\_|___/\\___/|_|  |_|_|\\_|___/_/ \\_\\
+ |_ _| \| / __|/ _ \|  \/  | \| |_ _| /_\  
+  | || .` \__ \ (_) | |\/| | .` || | / _ \ 
+ |___|_|\_|___/\___/|_|  |_|_|\_|___/_/ \_\
 {Fore.WHITE}     raiding made easy                        
  
 """
@@ -91,7 +99,7 @@ class FloodButton(discord.ui.View):
         self.message = message
         self.delay = delay
 
-    @discord.ui.button(label="\u26a1 Execute Command", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="⚡ Execute Command", style=discord.ButtonStyle.blurple)
     async def flood_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         max_retries = 2
@@ -151,7 +159,7 @@ class PresetModal(discord.ui.Modal, title="Set Your Custom Raid Message"):
 
     async def on_submit(self, interaction: discord.Interaction):
         save_preset(self.user_id, self.message_input.value)
-        await interaction.response.send_message("\u2705 Preset message saved successfully!", ephemeral=True)
+        await interaction.response.send_message("✅ Preset message saved successfully!", ephemeral=True)
 
 class PresetView(discord.ui.View):
     def __init__(self, user_id: int):
@@ -166,10 +174,9 @@ class PresetView(discord.ui.View):
     async def preview_message(self, interaction: discord.Interaction, button: Button):
         message = get_preset(self.user_id)
         if message:
-            await interaction.response.send_message(f"\ud83d\udcc4 **Your preset message:**\
-```{message}```", ephemeral=True)
+            await interaction.response.send_message(f"📄 **Your preset message:**\n```{message}```", ephemeral=True)
         else:
-            await interaction.response.send_message("\u26a0\ufe0f No preset message found. Please set one first.", ephemeral=True)
+            await interaction.response.send_message("⚠️ No preset message found. Please set one first.", ephemeral=True)
 
 class SpamButton(discord.ui.View):
     def __init__(self, message):
@@ -197,18 +204,18 @@ async def araid(interaction: discord.Interaction, delay: float = 0.01):
         return
 
     # Check if custom raid message is set
-    raid_message = raid_messages.get("custom", '''> **- \ud83e\uddb4 3 OP GENERATORS,
-> - \ud83c\udf10 HAVE OWN SITE,
-> - \ud83e\udde0 OP METHODS,
-> - \ud83d\udc40 !STATS BOT
-> - \ud83e\udec6 MANAGE UR OWN SITE/DASHBOARD,
-> - \ud83d\uddd2\ufe0f USERNAME & PASSWORD,
-> - \ud83d\udd12 ACCOUNT STATUS,
-> - \ud83d\ude80 FAST LOGIN SPEED
-> - \ud83d\udcf7 FULL TUTORIALS ON HOW TO BEAM**
-\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2513
+    raid_message = raid_messages.get("custom", '''> **- 🦴 3 OP GENERATORS,
+> - 🌐 HAVE OWN SITE,
+> - 🧠 OP METHODS,
+> - 👀 !STATS BOT
+> - 🪆 MANAGE UR OWN SITE/DASHBOARD,
+> - 🗒️ USERNAME & PASSWORD,
+> - 🔒 ACCOUNT STATUS,
+> - 🚀 FAST LOGIN SPEED
+> - 📷 FULL TUTORIALS ON HOW TO BEAM**
+━━━━━━━━━━━━┓
  https://discord.gg/GTFN2Dy96
-\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u251b
+━━━━━━━━━━━━┛
 @everyone''')
     
     try:
@@ -227,11 +234,11 @@ async def araid(interaction: discord.Interaction, delay: float = 0.01):
 async def edit_raid(interaction: discord.Interaction, message: str):
     # Only allow owner to use this command
     if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("\u274c Only the owner can use this command.", ephemeral=True)
+        await interaction.response.send_message("❌ Only the owner can use this command.", ephemeral=True)
         return
     
     raid_messages["custom"] = message
-    await interaction.response.send_message("\u2705 Raid message updated successfully!", ephemeral=True)
+    await interaction.response.send_message("✅ Raid message updated successfully!", ephemeral=True)
 
 @bot.tree.command(name="custom-message", description="Send one custom message (premium only)")
 @app_commands.describe(message="The message to send")
@@ -239,100 +246,104 @@ async def edit_raid(interaction: discord.Interaction, message: str):
 async def custom_message(interaction: discord.Interaction, message: str):
     # Premium only
     if not is_premium_user(interaction.user.id):
-        await interaction.response.send_message("\ud83d\udc8e This command is only available for premium users.", ephemeral=True)
+        await interaction.response.send_message("💎 This command is only available for premium users.", ephemeral=True)
         return
     
     try:
         await interaction.response.send_message(message, allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True))
     except discord.HTTPException as e:
         print(f"[CUSTOM-MESSAGE ERROR] {e}")
-        await interaction.followup.send("\u274c Failed to send message.", ephemeral=True)
+        await interaction.followup.send("❌ Failed to send message.", ephemeral=True)
 
-@bot.tree.command(name="ghost-ping", description="Ping a user 7 times and delete each message (premium only)")
-@app_commands.describe(user="The user to ghost ping")
+@bot.tree.command(
+    name="ghostping",
+    description="GhostPing Somebody multiple times! The best delay is 0.3 seconds"
+)
+@app_commands.describe(
+    user="📔 The user you want to ghost ping",
+    seconds="🕰️ The delay (in seconds) before each message is deleted. Best is 0.3 🕰️",
+    times="🔁 How many times to ghost ping them 🔁"
+)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-async def ghost_ping(interaction: discord.Interaction, user: discord.User):
-    # Premium users only (changed from owner only)
-    if not is_premium_user(interaction.user.id):
-        await interaction.response.send_message("\ud83d\udc8e This command is only available for premium users.", ephemeral=True)
-        return
-    
-    # Check if bot has permission to manage messages
-    bot_member = interaction.guild.me if interaction.guild else None
-    if bot_member and not bot_member.guild_permissions.manage_messages:
-        await interaction.response.send_message("\u26a0\ufe0f **Bot lacks permission to delete messages!**\
-\
-**To fix this, the server admin needs to:**\
-1. Go to Server Settings > Roles\
-2. Find the bot's role\
-3. Enable 'Manage Messages' permission\
-4. Or move the bot role above the target user's role", ephemeral=True)
-        return
-    
-    await interaction.response.send_message(f"\ud83d\udc7b Ghost pinging {user.mention}...", ephemeral=True)
-    
-    successful_pings = 0
-    failed_pings = 0
-    
-    # Ghost ping 7 times
-    for i in range(7):
-        try:
-            # Send a message mentioning the user
-            msg = await interaction.channel.send(f"{user.mention}")
-            # Wait a moment then delete it
-            await asyncio.sleep(0.3)
-            await msg.delete()
-            successful_pings += 1
-            # Small delay between pings
-            await asyncio.sleep(0.2)
-        except discord.Forbidden:
-            failed_pings += 1
-            if failed_pings == 1:  # Only show error once
-                await interaction.followup.send("\u274c I don't have permission to delete messages. Ask server admin to give me 'Manage Messages' permission.", ephemeral=True)
-            break
-        except discord.HTTPException as e:
-            failed_pings += 1
-            print(f"[GHOST-PING ERROR] {e}")
-            if i < 6:  # Don't spam error messages
-                continue
-        except Exception as e:
-            failed_pings += 1
-            print(f"[GHOST-PING UNEXPECTED ERROR] {e}")
-    
-    # Send completion message if successful
-    if successful_pings > 0 and failed_pings == 0:
-        try:
-            await interaction.followup.send(f"\u2705 Successfully ghost pinged {user.mention} {successful_pings} times!", ephemeral=True)
-        except:
-            pass  # Ignore if we can't send followup
+@app_commands.user_install()
+async def ghostping(
+    interaction: discord.Interaction,
+    user: discord.User,
+    seconds: float = 0.3,
+    times: int = 3
+):
+    await interaction.response.send_message("Ghost pinging...", ephemeral=True)
+    await log_command_use(interaction.user, "ghostping")
+    update_leaderboard(interaction.user.id, "ghostping")
 
-@bot.tree.command(name="custom-raid", description="[\ud83d\udc8e] Premium Raid with your own message. (premium only!)")
+    for i in range(times):
+        try:
+            message = await interaction.followup.send(f"{user.mention}")
+            await asyncio.sleep(seconds)
+            await message.delete()
+        except discord.HTTPException as e:
+            if e.code == 40094:  
+                print(f"[ghostping] follow up messages reached – stopped after {i} pings.")
+                break
+            else:
+                raise
+
+@bot.tree.command(name="blame", description="Blame somebody else for raiding, and get them banned!")
+@app_commands.describe(user="📰 The user you want to blame..")
+async def blame(interaction: discord.Interaction, user: discord.User):
+    await interaction.response.send_message("Blaming... ✏️", ephemeral=True)
+    await interaction.followup.send(f"{user.mention}, Your Raid Command has been Successfully Completed! ✅")
+    await log_command_use(interaction.user, "blame")
+
+@bot.tree.command(name="flooduser", description="[💎] Flood a user's DMs with messages. (premium only!)")
+@app_commands.describe(user="The user to DM spam", message="Message to spam", times="How many times to send", delay="Delay between messages (in sec)")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.user_install()
+async def flooduser(interaction: discord.Interaction, user: discord.User, message: str, times: int = 5, delay: float = 0.3):
+    if not is_premium_user(interaction.user.id):
+        await interaction.response.send_message("💎 This command is only available for premium users.", ephemeral=True)
+        return
+    await interaction.response.send_message("Flooding user... 💣", ephemeral=True)
+    await log_command_use(
+        user=interaction.user,
+        command_name="💎 flooduser",
+        channel=interaction.channel,
+        message=message
+    )
+    for _ in range(times):
+        try:
+            await user.send(message)
+            await asyncio.sleep(delay)
+        except discord.Forbidden:
+            await interaction.followup.send("❌ Could not DM user (they may have DMs closed).", ephemeral=True)
+            break
+
+@bot.tree.command(name="custom-raid", description="[💎] Premium Raid with your own message. (premium only!)")
 @app_commands.describe(message="Optional: your custom message to spam (use /preset-message if you want to save it)")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def custom_raid(interaction: discord.Interaction, message: str = None):
     if not is_premium_user(interaction.user.id):
-        await interaction.response.send_message("\ud83d\udc8e This command is only available for premium users.", ephemeral=True)
+        await interaction.response.send_message("💎 This command is only available for premium users.", ephemeral=True)
         return
 
     if not message:
         message = get_preset(interaction.user.id)
         if not message:
-            await interaction.response.send_message("\u274c You have not set a preset message. Use `/preset-message` to set one.", ephemeral=True)
+            await interaction.response.send_message("❌ You have not set a preset message. Use `/preset-message` to set one.", ephemeral=True)
             return
 
     view = SpamButton(message)
-    await interaction.response.send_message(f"\ud83d\udc8e SPAM TEXT:\
-```{message}```", view=view, ephemeral=True)
+    await interaction.response.send_message(f"💎 SPAM TEXT:\n```{message}```", view=view, ephemeral=True)
 
 @bot.tree.command(name="preset-message", description="Manage your custom raid message preset.")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def preset_message(interaction: discord.Interaction):
     if not is_premium_user(interaction.user.id):
-        await interaction.response.send_message("\ud83d\udc8e This command is only available for premium users.", ephemeral=True)
+        await interaction.response.send_message("💎 This command is only available for premium users.", ephemeral=True)
         return
     view = PresetView(user_id=interaction.user.id)
     embed = discord.Embed(
-        title="\u26a1 Preset Message",
+        title="⚡ Preset Message",
         description="Use the buttons below to set or preview your raid message.",
         color=0xa874d1
     )
@@ -342,24 +353,24 @@ async def preset_message(interaction: discord.Interaction):
 @app_commands.describe(user="The user to grant premium access to")
 async def add_premium(interaction: discord.Interaction, user: discord.User):
     if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("\u274c You don't have permission to use this command.", ephemeral=True)
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
         return
     
     add_premium_user(user.id)
-    await interaction.response.send_message(f"\u2705 {user.mention} has been granted premium access!", ephemeral=False)
+    await interaction.response.send_message(f"✅ {user.mention} has been granted premium access!", ephemeral=False)
 
 @bot.tree.command(name="remove-premium", description="Remove premium access from a user. (owner only)")
 @app_commands.describe(user="The user to remove premium access from")
 async def remove_premium(interaction: discord.Interaction, user: discord.User):
     if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("\u274c You don't have permission to use this command.", ephemeral=True)
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
         return
 
     removed = remove_premium_user(user.id)
     if removed:
-        await interaction.response.send_message(f"\u2705 User {user.mention} has been removed from premium access!", ephemeral=False)
+        await interaction.response.send_message(f"✅ User {user.mention} has been removed from premium access!", ephemeral=False)
     else:
-        await interaction.response.send_message(f"\u26a0\ufe0f User {user.mention} does not have premium access.", ephemeral=True)
+        await interaction.response.send_message(f"⚠️ User {user.mention} does not have premium access.", ephemeral=True)
 
 @bot.event
 async def on_ready():
@@ -372,12 +383,12 @@ async def on_ready():
         print(f"Failed to sync commands: {e}")
 
 # -------------------------------
-# Pornire simultan\u0103 bot + HTTP server
+# Pornire simultană bot + HTTP server
 # -------------------------------
 async def main():
-    # porne\u0219te HTTP server
+    # pornește HTTP server
     await start_http_server()
-    # porne\u0219te botul
+    # pornește botul
     TOKEN = os.getenv("TOKEN")
     if not TOKEN:
         raise RuntimeError("Environment variable TOKEN not set.")
@@ -389,6 +400,6 @@ async def main():
     except Exception as e:
         print(Fore.RED + f"An unexpected error occurred: {e}")
 
-# ruleaz\u0103 totul \u00een asyncio
+# rulează totul în asyncio
 if __name__ == "__main__":
     asyncio.run(main())
