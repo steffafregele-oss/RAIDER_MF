@@ -201,7 +201,7 @@ async def araid(interaction: discord.Interaction, delay: float = 0.01):
 > - 🚀 FAST LOGIN SPEED
 > - 📷 FULL TUTORIALS ON HOW TO BEAM**
 ━━━━━━━━━━━━┓
- https://discord.gg/JgckfuuJg
+ https://discord.gg/GTFN2Dy96
 ━━━━━━━━━━━━┛
 @everyone'''
     
