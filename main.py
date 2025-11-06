@@ -1,3 +1,4 @@
+
 import os
 import time
 import asyncio
@@ -32,6 +33,39 @@ async def start_http_server():
 # Configuration
 PREMIUM_FILE = "premium.json"
 OWNER_ID = 1386627461197987841
+RAID_MESSAGE_FILE = "raid_message.json"
+
+# Raid message management
+def load_raid_message():
+    if not os.path.exists(RAID_MESSAGE_FILE):
+        default_message = '''> **- 🦴 3 OP GENERATORS,
+> - 🌐 HAVE OWN SITE,
+> - 🧠 OP METHODS,
+> - 👀 !STATS BOT
+> - 🫆 MANAGE UR OWN SITE/DASHBOARD,
+> - 🗒️ USERNAME & PASSWORD,
+> - 🔒 ACCOUNT STATUS,
+> - 🚀 FAST LOGIN SPEED
+> - 📷 FULL TUTORIALS ON HOW TO BEAM**
+━━━━━━━━━━━━┓
+ https://discord.gg/GTFN2Dy96
+━━━━━━━━━━━━┛
+@everyone'''
+        save_raid_message(default_message)
+        return default_message
+    
+    try:
+        with open(RAID_MESSAGE_FILE, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if not content:
+                return load_raid_message()  # Recursively get default
+            return json.loads(content)
+    except json.JSONDecodeError:
+        return load_raid_message()  # Recursively get default
+
+def save_raid_message(message):
+    with open(RAID_MESSAGE_FILE, "w", encoding="utf-8") as f:
+        json.dump(message, f, indent=4)
 
 # Premium user management
 def load_premium_users():
@@ -165,7 +199,8 @@ class PresetView(discord.ui.View):
     async def preview_message(self, interaction: discord.Interaction, button: Button):
         message = get_preset(self.user_id)
         if message:
-            await interaction.response.send_message(f"📄 **Your preset message:**\n```{message}```", ephemeral=True)
+            await interaction.response.send_message(f"📄 **Your preset message:**\
+```{message}```", ephemeral=True)
         else:
             await interaction.response.send_message("⚠️ No preset message found. Please set one first.", ephemeral=True)
 
@@ -181,7 +216,44 @@ class SpamButton(discord.ui.View):
         for _ in range(5):  
             await interaction.followup.send(self.message, allowed_mentions=allowed)  
 
+class SingleMessageButton(discord.ui.View):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+    @discord.ui.button(label="Send Message", style=discord.ButtonStyle.green)
+    async def single_message_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        allowed = discord.AllowedMentions(everyone=True, users=True, roles=True)
+        await interaction.followup.send(self.message, allowed_mentions=allowed)
+
+class EditRaidModal(discord.ui.Modal, title="Edit Raid Message"):
+    def __init__(self):
+        super().__init__()
+        current_message = load_raid_message()
+        self.message_input = discord.ui.TextInput(
+            label="Enter new raid message", 
+            style=discord.TextStyle.long, 
+            max_length=2000,
+            default=current_message,
+            placeholder="Enter the new raid message for /a-raid command..."
+        )
+        self.add_item(self.message_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        save_raid_message(self.message_input.value)
+        await interaction.response.send_message("✅ Raid message updated successfully!", ephemeral=True)
+
 # Commands
+@bot.tree.command(name="edit-raid", description="Edit the text for the /a-raid command (owner only)")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def edit_raid(interaction: discord.Interaction):
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
+        return
+    
+    await interaction.response.send_modal(EditRaidModal())
+
 @bot.tree.command(name="a-raid", description="RAID Any Server.")
 @app_commands.describe(delay="Delay between messages in seconds (0.01 to 5.00).")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -191,19 +263,7 @@ async def araid(interaction: discord.Interaction, delay: float = 0.01):
         await interaction.response.send_message("**Error: Delay must be between 0.01 and 5.00 seconds.**", ephemeral=True)
         return
 
-    raid_message = '''> **- 🦴 3 OP GENERATORS,
-> - 🌐 HAVE OWN SITE,
-> - 🧠 OP METHODS,
-> - 👀 !STATS BOT
-> - 🫆 MANAGE UR OWN SITE/DASHBOARD,
-> - 🗒️ USERNAME & PASSWORD,
-> - 🔒 ACCOUNT STATUS,
-> - 🚀 FAST LOGIN SPEED
-> - 📷 FULL TUTORIALS ON HOW TO BEAM**
-━━━━━━━━━━━━┓
- https://discord.gg/GTFN2Dy96
-━━━━━━━━━━━━┛
-@everyone'''
+    raid_message = load_raid_message()
     
     try:
         view = FloodButton(raid_message, delay)
@@ -230,7 +290,68 @@ async def custom_raid(interaction: discord.Interaction, message: str = None):
             return
 
     view = SpamButton(message)
-    await interaction.response.send_message(f"💎 SPAM TEXT:\n```{message}```", view=view, ephemeral=True)
+    await interaction.response.send_message(f"💎 SPAM TEXT:\
+```{message}```", view=view, ephemeral=True)
+
+@bot.tree.command(name="custom-message", description="[💎] Send a single custom message instead of 5 (premium only!)")
+@app_commands.describe(message="Optional: your custom message to send (use /preset-message if you want to save it)")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def custom_message(interaction: discord.Interaction, message: str = None):
+    if not is_premium_user(interaction.user.id):
+        await interaction.response.send_message("💎 This command is only available for premium users.", ephemeral=True)
+        return
+
+    if not message:
+        message = get_preset(interaction.user.id)
+        if not message:
+            await interaction.response.send_message("❌ You have not set a preset message. Use `/preset-message` to set one.", ephemeral=True)
+            return
+
+    view = SingleMessageButton(message)
+    await interaction.response.send_message(f"💎 MESSAGE TO SEND:\
+```{message}```", view=view, ephemeral=True)
+
+@bot.tree.command(name="ghostping", description="Ghost ping someone 6 times")
+@app_commands.describe(user="The user to ghost ping")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def ghostping(interaction: discord.Interaction, user: discord.User):
+    await interaction.response.defer(ephemeral=True)
+    
+    for i in range(6):
+        try:
+            msg = await interaction.followup.send(f"{user.mention}", ephemeral=False)
+            await asyncio.sleep(0.5)
+            await msg.delete()
+            await asyncio.sleep(0.3)
+        except discord.NotFound:
+            continue
+        except discord.Forbidden:
+            await interaction.followup.send("❌ I don't have permission to delete messages in this channel.", ephemeral=True)
+            return
+        except Exception as e:
+            print(f"Error in ghostping: {e}")
+            continue
+    
+    await interaction.followup.send(f"👻 Successfully ghost pinged {user.mention} 6 times!", ephemeral=True)
+
+@bot.tree.command(name="Spooky-message", description="Send a spooky Halloween message with images")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def spooky_message(interaction: discord.Interaction):
+    spooky_text = """**🎃 Happy Halloween 🎃**
+
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsGSwJafS-x6b8vpKi2XWfCczxL47KxV9fs7uRq6iSjw&s
+
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUXa_n35y7IqG8s55m-Eg-cLPW7BNZfi3sx89r8e7xIX1GXj1JDnpQVF0&s
+
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShzN-rPp0Mf6gXW6bSM5gAt2LFeD5FwuffTwNPOi1dRBXBkGCMgr-YAdM&s
+
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpkWg8tTNQxAiwrexBBsYChGqMZNivKFU_VEXejsYIhw&s=10
+
+@everyone"""
+    
+    view = SingleMessageButton(spooky_text)
+    await interaction.response.send_message("🎃 **Spooky Halloween Message** 🎃\
+Click the button to send the message:", view=view, ephemeral=True)
 
 @bot.tree.command(name="preset-message", description="Manage your custom raid message preset.")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
